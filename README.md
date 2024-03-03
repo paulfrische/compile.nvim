@@ -1,1 +1,1 @@
-# nvim-plugin-template
+# Compile
