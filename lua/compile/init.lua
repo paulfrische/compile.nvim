@@ -1,14 +1,33 @@
 local M = {}
 local util = require('compile._util')
 
-M._state = {
-  buf = vim.api.nvim_create_buf(true, true),
-  window = nil,
+local defaults = {
+  ratio = 0.8,
 }
 
+M._state = {}
+
+M.setup = function(opts)
+  local buf = vim.api.nvim_create_buf(true, true)
+  vim.api.nvim_buf_set_option_value('modifiable', false)
+
+  if opts then
+    vim.tbl_deep_extend('keep', opts, defaults)
+  else
+    opts = defaults
+  end
+
+  M._state = {
+    buf = buf,
+    window = nil,
+    ratio = opts.ratio,
+  }
+end
+
 M.compile = function()
+  M.show()
+
   local command = util.command()
-  M._state.window = util.open_float(0.8, M._state.buf)
 
   local stdout = vim.uv.new_pipe()
   local stderr = vim.uv.new_pipe()
@@ -49,6 +68,10 @@ M.close = function()
     vim.api.nvim_win_close(M._state.window, true)
     M._state.window = nil
   end
+end
+
+M.show = function()
+  M._state.window = util.open_float(M._state.ratio, M._state.buf)
 end
 
 return M
