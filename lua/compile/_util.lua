@@ -50,4 +50,11 @@ M.command = function()
   return command
 end
 
+M.scroll_down = function(buf, win)
+  vim.schedule(function()
+    local lines = vim.api.nvim_buf_line_count(buf)
+    vim.api.nvim_win_set_cursor(win, { lines, 0 })
+  end)
+end
+
 return M

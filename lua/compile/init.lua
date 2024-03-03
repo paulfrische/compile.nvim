@@ -3,6 +3,8 @@ local util = require('compile._util')
 
 local defaults = {
   ratio = 0.8,
+  type = 'float',
+  direction = 'right',
 }
 
 M._state = {}
@@ -20,6 +22,8 @@ M.setup = function(opts)
     buf = buf,
     window = nil,
     ratio = opts.ratio,
+    type = opts.type,
+    direction = opts.direction,
   }
 end
 
@@ -40,37 +44,39 @@ M.compile = function()
     function(code, signal)
       util.buf_append(
         M._state.buf,
-        { 'finished at ' .. require('os').date(), 'exit-code: ' .. code, 'signal: ' .. signal, '===' }
+        { 'finished at ' .. require('os').date(), 'exit-code: ' .. code, 'signal: ' .. signal, '', '-----', '' }
       )
     end
   )
 
-  util.buf_append(M._state.buf, { require('os').date(), 'start compilation as ' .. pid })
+  util.buf_append(M._state.buf, { require('os').date(), 'start compilation as ' .. pid, '' })
 
-  vim.uv.read_start(stdout, function(_, data)
+  local function update(_, data)
     if data then
       local lines = vim.split(data, '\n')
       util.buf_append(M._state.buf, lines)
+      util.scroll_down(M._state.buf, M._state.window)
     end
-  end)
+  end
 
-  vim.uv.read_start(stderr, function(_, data)
-    if data then
-      local lines = vim.split(data, '\n')
-      util.buf_append(M._state.buf, lines)
-    end
-  end)
+  vim.uv.read_start(stdout, update)
+  vim.uv.read_start(stderr, update)
 end
 
 M.close = function()
   if M._state.window then
-    vim.api.nvim_win_close(M._state.window, true)
+    pcall(vim.api.nvim_win_close, M._state.window, true)
     M._state.window = nil
   end
 end
 
 M.show = function()
-  M._state.window = util.open_float(M._state.ratio, M._state.buf)
+  M.close()
+  if M._state.type == 'float' then
+    M._state.window = util.open_float(M._state.ratio, M._state.buf)
+  elseif M._state.type == 'split' then
+    M._state.window = vim.api.nvim_open_win(M._state.buf, true, { split = M._state.direction })
+  end
 end
 
 return M
