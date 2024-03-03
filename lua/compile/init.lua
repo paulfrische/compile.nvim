@@ -10,7 +10,6 @@ M._state = {}
 M.setup = function(opts)
   local buf = vim.api.nvim_create_buf(true, true)
   vim.api.nvim_set_option_value('modifiable', false, {
-    scope = 'local',
     buf = buf,
   })
 
