@@ -1,4 +1,3 @@
-print('hello')
 local compile = require('compile')
 
 vim.api.nvim_create_user_command('Compile', compile.compile, {})
