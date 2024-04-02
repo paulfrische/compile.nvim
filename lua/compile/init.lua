@@ -10,7 +10,7 @@ local defaults = {
 M._state = {}
 
 M.setup = function(opts)
-  local buf = vim.api.nvim_create_buf(true, true)
+  local buf = vim.api.nvim_create_buf(false, true)
 
   if opts then
     opts = vim.tbl_deep_extend('keep', opts, defaults)
